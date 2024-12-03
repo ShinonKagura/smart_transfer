@@ -4,6 +4,8 @@ from tkinter import Tk, filedialog
 from compression_manager import CompressionManager
 from sender import SmartTransferSender
 from receiver import SmartTransferReceiver
+from unpacker import Unpacker
+
 
 if __name__ == "__main__":
     Tk().withdraw()
@@ -54,5 +56,12 @@ if __name__ == "__main__":
         receiver.request_missing_blocks(sender)
         threading.Event().wait(1)
         receiver.reconstruct_file(output_file_path, compression_plugin)
+
+    if choice == 2:
+        # Entpacken
+        unpacker = Unpacker(compression_manager)
+        input_path = filedialog.askopenfilename(title="Select File to Unpack")
+        output_folder = filedialog.askdirectory(title="Select Output Folder")
+        unpacker.unpack_file(input_path, output_folder)
 
     print("Process completed.")
