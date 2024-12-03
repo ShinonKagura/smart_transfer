@@ -29,3 +29,15 @@ class Packer:
             print(f"File packed and saved to {output_file}.")
         except Exception as e:
             print(f"Error packing the file: {e}")
+
+    def validate_compressed_file(self):
+        """
+        Validiert die komprimierte Datei basierend auf den Header-Metadaten.
+        """
+        total_size = sum(self.header['block_sizes'])
+        actual_size = sum(len(block) for block in self.blocks)
+        if total_size != actual_size:
+            print(f"Warning: Mismatch in expected and actual compressed data sizes! "
+                f"Expected: {total_size} bytes, Actual: {actual_size} bytes")
+        else:
+            print("Compressed file validation successful.")
