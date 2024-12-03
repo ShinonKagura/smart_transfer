@@ -1,3 +1,5 @@
+import os
+
 class Packer:
     def __init__(self, plugin):
         """

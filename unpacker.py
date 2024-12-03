@@ -1,3 +1,5 @@
+import os
+
 class Unpacker:
     def __init__(self, compression_manager):
         """
@@ -43,6 +45,7 @@ class Unpacker:
         """
         extension_map = {
             '.zip': 'zip',
+            '.bin': 'zstandard',  # Verknüpft .bin-Dateien mit dem Zstandard-Plugin
             # Weitere Erweiterungen wie '.rar', '.7z' können hier ergänzt werden.
         }
         return extension_map.get(extension, None)
