@@ -1,67 +1,87 @@
 import os
-import threading
 from tkinter import Tk, filedialog
 from compression_manager import CompressionManager
-from sender import SmartTransferSender
-from receiver import SmartTransferReceiver
+from packer import Packer
 from unpacker import Unpacker
 
-
-if __name__ == "__main__":
+def main():
     Tk().withdraw()
 
     # Lade Plugins
     compression_manager = CompressionManager()
     compression_manager.load_plugins()
 
-    # Zeige verfügbare Plugins
-    print("Available compression methods:")
+    # Hauptmenü
+    while True:
+        print("\nAvailable operations:")
+        print("1. Pack a file")
+        print("2. Unpack a file")
+        print("3. Transfer a file")
+        print("4. Exit")
+        choice = input("Select an operation: ")
+
+        if choice == "1":
+            handle_packing(compression_manager)
+        elif choice == "2":
+            handle_unpacking(compression_manager)
+        elif choice == "3":
+            handle_transfer(compression_manager)
+        elif choice == "4":
+            print("Exiting...")
+            break
+        else:
+            print("Invalid choice. Please try again.")
+
+def handle_packing(compression_manager):
+    print("\nAvailable compression methods:")
     plugins = compression_manager.list_plugins()
     for idx, plugin_name in enumerate(plugins, start=1):
         print(f"{idx}. {plugin_name}")
 
     choice = int(input("Select a compression method: ")) - 1
     if choice < 0 or choice >= len(plugins):
-        print("Invalid choice. Exiting.")
-        exit()
+        print("Invalid choice. Returning to main menu.")
+        return
 
-    compression_plugin = compression_manager.get_plugin(plugins[choice])
+    plugin = compression_manager.get_plugin(plugins[choice])
+    if not plugin:
+        print("Selected plugin not available.")
+        return
 
-    # Datei auswählen
-    print("Please select the file to process:")
-    input_file_path = filedialog.askopenfilename(title="Select File")
-    if not input_file_path:
-        print("No file selected. Exiting.")
-        exit()
+    print("\nPlease select the file to pack:")
+    input_file = filedialog.askopenfilename(title="Select File")
+    if not input_file:
+        print("No file selected.")
+        return
 
-    default_output_name = os.path.splitext(os.path.basename(input_file_path))[0] + "_compressed"
-    print("Please select where to save the compressed file:")
-    output_file_path = filedialog.asksaveasfilename(title="Save File As", defaultextension=".bin", initialfile=default_output_name)
-    if not output_file_path:
-        print("No output location selected. Exiting.")
-        exit()
+    print("Please select where to save the packed file:")
+    output_file = filedialog.asksaveasfilename(title="Save Packed File As", defaultextension=".bin")
+    if not output_file:
+        print("No output location selected.")
+        return
 
-    # Komprimieren
-    sender = SmartTransferSender(input_file_path, plugin=compression_plugin)
-    sender.analyze_and_compress()
-    sender.save_compression_data(output_file_path)
+    packer = Packer(plugin)
+    packer.pack_file(input_file, output_file)
 
-    print("Do you want to send the file now?")
-    send_choice = input("Enter Y to send, or N to exit: ").lower()
+def handle_unpacking(compression_manager):
+    print("\nPlease select the file to unpack:")
+    input_file = filedialog.askopenfilename(title="Select File")
+    if not input_file:
+        print("No file selected.")
+        return
 
-    if send_choice == "y":
-        receiver = SmartTransferReceiver(total_blocks=len(sender.blocks))
-        sender.send(receiver)
-        threading.Event().wait(1)
-        receiver.request_missing_blocks(sender)
-        threading.Event().wait(1)
-        receiver.reconstruct_file(output_file_path, compression_plugin)
+    print("Please select the output folder:")
+    output_folder = filedialog.askdirectory(title="Select Output Folder")
+    if not output_folder:
+        print("No output folder selected.")
+        return
 
-    if choice == 2:
-        # Entpacken
-        unpacker = Unpacker(compression_manager)
-        input_path = filedialog.askopenfilename(title="Select File to Unpack")
-        output_folder = filedialog.askdirectory(title="Select Output Folder")
-        unpacker.unpack_file(input_path, output_folder)
+    unpacker = Unpacker(compression_manager)
+    unpacker.unpack_file(input_file, output_folder)
 
-    print("Process completed.")
+def handle_transfer(compression_manager):
+    print("\nTransfer functionality will be implemented later.")
+    # Hier kannst du die Transfer-Optionen ergänzen, wenn sie bereit sind.
+
+if __name__ == "__main__":
+    main()
