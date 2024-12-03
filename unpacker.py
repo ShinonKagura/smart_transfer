@@ -49,3 +49,4 @@ class Unpacker:
             # Weitere Erweiterungen wie '.rar', '.7z' können hier ergänzt werden.
         }
         return extension_map.get(extension, None)
+
