@@ -1,7 +1,6 @@
 import importlib
 import os
 import pkgutil
-
 from compression_plugin_base import CompressionPlugin
 
 class CompressionManager:
