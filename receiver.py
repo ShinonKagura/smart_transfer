@@ -1,9 +1,12 @@
-import os
+from unpacker import Unpacker
 
 class SmartTransferReceiver:
-    def __init__(self, total_blocks):
-        self.received_blocks = [None] * total_blocks
-        self.missing_blocks = []
+    def __init__(self, plugin):
+        self.unpacker = Unpacker(plugin)
+
+    def receive(self, packed_file_path, output_folder):
+        # Empfangsvorgang für 'packed_file_path'
+        self.unpacker.unpack_file(packed_file_path, output_folder)
 
     def receive_block(self, index, block):
         self.received_blocks[index] = block

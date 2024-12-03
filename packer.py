@@ -2,42 +2,40 @@ import os
 
 class Packer:
     def __init__(self, plugin):
-        """
-        :param plugin: Kompressionsplugin, das für das Packen verwendet wird.
-        """
         self.plugin = plugin
 
-    def pack_file(self, input_file, output_file):
-        """
-        Packt die Datei mit dem Plugin und speichert sie im Zielpfad.
-        :param input_file: Pfad zur Eingabedatei.
-        :param output_file: Pfad zur Ausgabedatei.
-        """
+    def pack_file(self, file_path, output_path):
         try:
             print("Packing the file...")
-            with open(input_file, 'rb') as f:
-                data = f.read()
+            block_metadata = []
+            blocks = []
 
-            compressed_data = self.plugin.compress(data)
-            if compressed_data is None:
-                print("Packing failed: Compression plugin returned no data.")
-                return
+            with open(file_path, 'rb') as file:
+                while chunk := file.read(1024 * 1024):  # Blockgröße: 1 MB
+                    compressed_chunk = self.plugin.compress(chunk)
+                    blocks.append(compressed_chunk)
+                    block_metadata.append(len(compressed_chunk))
 
-            with open(output_file, 'wb') as f:
-                f.write(compressed_data)
+            header = {
+                "original_size": os.path.getsize(file_path),
+                "block_count": len(blocks),
+                "block_sizes": block_metadata,
+                "compression_method": self.plugin.get_name(),
+                "original_filename": os.path.basename(file_path),
+            }
 
-            print(f"File packed and saved to {output_file}.")
+            # Speichere den Header
+            header_path = output_path + ".hdr"
+            with open(header_path, 'w') as header_file:
+                for key, value in header.items():
+                    header_file.write(f"{key}:{value}\n")
+
+            # Speichere die komprimierten Daten
+            bin_path = output_path  # Keine zusätzliche ".bin" anhängen
+            with open(bin_path, 'wb') as bin_file:
+                for block in blocks:
+                    bin_file.write(block)
+
+            print(f"File packed and saved to {bin_path}.")
         except Exception as e:
             print(f"Error packing the file: {e}")
-
-    def validate_compressed_file(self):
-        """
-        Validiert die komprimierte Datei basierend auf den Header-Metadaten.
-        """
-        total_size = sum(self.header['block_sizes'])
-        actual_size = sum(len(block) for block in self.blocks)
-        if total_size != actual_size:
-            print(f"Warning: Mismatch in expected and actual compressed data sizes! "
-                f"Expected: {total_size} bytes, Actual: {actual_size} bytes")
-        else:
-            print("Compressed file validation successful.")

@@ -1,12 +1,16 @@
+from packer import Packer
 import os
 
 class SmartTransferSender:
-    def __init__(self, file_path, plugin, block_size=1024 * 1024):
+    def __init__(self, file_path, plugin):
+        self.packer = Packer(plugin)
         self.file_path = file_path
-        self.plugin = plugin
-        self.block_size = block_size
-        self.blocks = []
-        self.header = None
+
+    def send(self, receiver):
+        packed_file_path = self.file_path + ".bin"
+        self.packer.pack_file(self.file_path, packed_file_path)
+        # Sendevorgang für 'packed_file_path'
+
 
     def analyze_and_compress(self):
         print("Analyzing and compressing the file...")
