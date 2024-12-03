@@ -12,22 +12,28 @@ class Unpacker:
         :param output_folder: Ordner, in dem die entpackten Dateien gespeichert werden.
         """
         try:
-            # Dateierweiterung ermitteln
+            print(f"Attempting to unpack file: {file_path}")
             extension = os.path.splitext(file_path)[-1].lower()
-            plugin_name = self.detect_plugin_by_extension(extension)
-            plugin = self.manager.get_plugin(plugin_name)
+            print(f"Detected file extension: {extension}")
 
-            if not plugin:
+            plugin_name = self.detect_plugin_by_extension(extension)
+            print(f"Identified plugin: {plugin_name}")
+
+            if not plugin_name:
                 print(f"No plugin available for extension: {extension}")
                 return
 
-            # Plugin zum Entpacken verwenden
+            plugin = self.manager.get_plugin(plugin_name)
+            if not plugin:
+                print(f"Plugin '{plugin_name}' could not be loaded.")
+                return
+
             print(f"Using plugin '{plugin_name}' to unpack the file...")
             plugin.decompress(file_path, output_folder)
             print("Unpacking completed.")
         except Exception as e:
-            # Fehler protokollieren
-            print(f"Error unpacking the file: {e}")
+            print(f"Error during unpacking: {e}")
+
 
     def detect_plugin_by_extension(self, extension):
         """

@@ -1,37 +1,39 @@
+import os
 import zstandard as zstd
 from compression_plugin_base import CompressionPlugin
 
 class ZstdCompressionPlugin(CompressionPlugin):
     def compress(self, data):
-        """
-        Komprimiert die Rohdaten mit Zstandard.
-        :param data: Rohdaten als Bytes.
-        :return: Komprimierte Daten als Bytes.
-        """
         compressor = zstd.ZstdCompressor()
         return compressor.compress(data)
 
-    def decompress(self, file_path, output_folder):
-        """
-        Dekomprimiert eine Datei, die mit Zstandard komprimiert wurde.
-        :param file_path: Pfad zur komprimierten Datei.
-        :param output_folder: Ordner, in dem die dekomprimierten Daten gespeichert werden.
-        """
+    def decompress(self, input_file_path, output_folder):
         try:
-            with open(file_path, 'rb') as f:
-                compressed_data = f.read()
+            print(f"Decompressing file: {input_file_path}")
+            if not os.path.exists(input_file_path):
+                print(f"Input file does not exist: {input_file_path}")
+                return
 
-            decompressor = zstd.ZstdDecompressor()
-            decompressed_data = decompressor.decompress(compressed_data)
+            if not os.path.exists(output_folder):
+                print(f"Output folder does not exist. Creating: {output_folder}")
+                os.makedirs(output_folder)
 
-            # Speichere die dekomprimierten Daten in einer Datei
-            output_file = os.path.join(output_folder, "decompressed_output")
-            with open(output_file, 'wb') as f:
-                f.write(decompressed_data)
+            output_file_path = os.path.join(output_folder, os.path.basename(input_file_path) + '_decompressed')
 
-            print(f"Decompressed data saved to {output_file}.")
+            with open(input_file_path, 'rb') as compressed_file:
+                decompressor = zstd.ZstdDecompressor()
+                with open(output_file_path, 'wb') as output_file:
+                    while True:
+                        chunk = compressed_file.read(8192)
+                        if not chunk:
+                            break
+                        decompressed_data = decompressor.decompress(chunk)
+                        output_file.write(decompressed_data)
+
+            print(f"Decompressed data saved to: {output_file_path}")
         except Exception as e:
             print(f"Error during decompression: {e}")
+
 
     @staticmethod
     def get_name():
