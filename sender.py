@@ -22,11 +22,13 @@ class SmartTransferSender:
                 self.blocks.append(compressed_chunk)
                 block_metadata.append(len(compressed_chunk))
 
+        # Speichere zusätzliche Informationen im Header
         self.header = {
             "original_size": os.path.getsize(self.file_path),
             "block_count": len(self.blocks),
             "block_sizes": block_metadata,
             "compression_method": self.plugin.get_name(),
+            "original_filename": os.path.basename(self.file_path),  # Ursprünglicher Dateiname
         }
         print(f"File split into {len(self.blocks)} compressed blocks.")
 
