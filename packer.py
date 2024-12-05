@@ -14,12 +14,14 @@ class Packer:
         block_metadata = []
         blocks = []
 
+        # Blockweise Daten komprimieren
         with open(file_path, 'rb') as file:
             while chunk := file.read(1024 * 1024):  # Blockgröße: 1 MB
                 compressed_chunk = self.plugin.compress(chunk)
                 blocks.append(compressed_chunk)
                 block_metadata.append(len(compressed_chunk))
 
+        # Header erstellen
         header = {
             "original_size": os.path.getsize(file_path),
             "block_count": len(blocks),
@@ -28,20 +30,24 @@ class Packer:
             "original_filename": os.path.basename(file_path),
         }
 
-        # Header speichern
+        # Sicherstellen, dass die Dateiendung korrekt ist
+        if not output_path.endswith(".bin"):
+            output_path += ".bin"
+        bin_path = output_path
         header_path = bin_path + ".hdr"
+        debug_path = bin_path + ".debug"
+
+        # Header speichern
         with open(header_path, 'w') as header_file:
             for key, value in header.items():
                 header_file.write(f"{key}:{value}\n")
 
         # Komprimierte Daten speichern
-        bin_path = output_path if output_path.endswith(".bin") else output_path + ".bin"
         with open(bin_path, 'wb') as bin_file:
             for block in blocks:
                 bin_file.write(block)
 
         # Debug-Informationen speichern
-        debug_path = bin_path + ".debug"
         total_compressed_size = sum(len(block) for block in blocks)
         with open(debug_path, 'w') as debug_file:
             debug_file.write(f"Original filename: {header['original_filename']}\n")
